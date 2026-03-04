@@ -31,22 +31,18 @@ from math import floor
 def set_combination():
     if request.method == 'POST':
         try:
-            # Extract passcode from form data
             form = request.form
             passcode = escape(form.get("passcode"))
-            print(passcode)
             passcodeInt = int(passcode)
             passcode = str(passcode)
-            # Check if passcode is a 4-digit integer
-            if  len(passcode) == 4 and type(passcodeInt) == int :
-                # Update passcode in the database
-                success = mongo.update_code(passcode)   
-            if success:
-                return jsonify({"status": "complete", "data": "complete"})
-            else:
-                return jsonify({"status": "failed", "data": "failed"})
+            if len(passcode) == 4 and type(passcodeInt) == int:
+                success = mongo.update_code(passcode)
+                if success is not None:
+                    return jsonify({"status": "complete", "data": "complete"})
+            return jsonify({"status": "failed", "data": "failed"})
         except Exception as e:
-            print(f"set_combination error: f{str(e)}") 
+            print(f"set_combination error: {str(e)}")
+            return jsonify({"status": "failed", "data": "failed"})
     
 # 2. CREATE ROUTE FOR '/api/check/combination'
 @app.route('/api/check/combination', methods=['POST'])
