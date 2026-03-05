@@ -150,7 +150,7 @@ void setup() {
   digit3(digit3V);
   digit4(digit4V);
   vButtonCheckFunction(); // UNCOMMENT IF USING BUTTONS THEN ADD LOGIC FOR INTERFACING WITH BUTTONS IN THE vButtonCheck FUNCTION
-
+  showLockState();
 }
   
 
@@ -221,10 +221,18 @@ void vButtonCheck( void * pvParameters )  {
         }
 
         // 3. Implement button3  functionality
-         if (digitalRead(BTN_3) == 0)
-        {
-          isLocked = false;
-          showLockState();
+        if (digitalRead(BTN_3) == 0) {
+            digit1V = 0;
+            digit2V = 0;
+            digit3V = 0;
+            digit4V = 0;
+            currentDigit = 1;
+            digit1(digit1V);
+            digit2(digit2V);
+            digit3(digit3V);
+            digit4(digit4V);
+            isLocked = false;
+            showLockState();
         }
        
         vTaskDelay(200 / portTICK_PERIOD_MS);  
@@ -313,14 +321,14 @@ void digit1(uint8_t number){
   int rectWidth = 50; 
   int rectHeight = 50; 
   int cornerRadius = 5; 
-  int fillColor = ILI9341_BLUE;
+  int fillColor = ILI9341_PINK;
 
   tft.fillRoundRect(rectX, rectY, rectWidth, rectHeight, cornerRadius, fillColor);
 
   // 3. Set cursor to the appropriate coordinates in order to write the number in the middle of the box 
    tft.setCursor(20, 295);
   // 4. Set the text colour of the number. Use any colour you like 
-  tft.setTextColor(ILI9341_RED);
+  tft.setTextColor(ILI9341_WHITE);
   // 5. Set font size to one 
   tft.setTextSize(1);
   // 6. Print number to the screen
@@ -335,14 +343,14 @@ void digit2(uint8_t number){
   int rectWidth = 50; 
   int rectHeight = 50; 
   int cornerRadius = 5; 
-  int fillColor = ILI9341_BLUE;
+  int fillColor = ILI9341_PINK;
 
   tft.fillRoundRect(rectX, rectY, rectWidth, rectHeight, cornerRadius, fillColor);
 
   // 3. Set cursor to the appropriate coordinates in order to write the number in the middle of the box 
    tft.setCursor(80, 295);
   // 4. Set the text colour of the number. Use any colour you like 
-  tft.setTextColor(ILI9341_RED);
+  tft.setTextColor(ILI9341_WHITE);
   // 5. Set font size to one 
   tft.setTextSize(1);
   // 6. Print number to the screen
@@ -356,14 +364,14 @@ void digit3(uint8_t number){
   int rectWidth = 50; 
   int rectHeight = 50; 
   int cornerRadius = 5; 
-  int fillColor = ILI9341_BLUE;
+  int fillColor = ILI9341_PINK;
 
   tft.fillRoundRect(rectX, rectY, rectWidth, rectHeight, cornerRadius, fillColor);
 
   // 3. Set cursor to the appropriate coordinates in order to write the number in the middle of the box 
    tft.setCursor(140, 295);
   // 4. Set the text colour of the number. Use any colour you like 
-  tft.setTextColor(ILI9341_RED);
+  tft.setTextColor(ILI9341_WHITE);
   // 5. Set font size to one 
   tft.setTextSize(1);
   // 6. Print number to the screen
@@ -377,14 +385,14 @@ void digit4(uint8_t number){
   int rectWidth = 50; 
   int rectHeight = 50; 
   int cornerRadius = 5; 
-  int fillColor = ILI9341_BLUE;
+  int fillColor = ILI9341_PINK;
 
   tft.fillRoundRect(rectX, rectY, rectWidth, rectHeight, cornerRadius, fillColor);
 
   // 3. Set cursor to the appropriate coordinates in order to write the number in the middle of the box 
    tft.setCursor(200, 295);
   // 4. Set the text colour of the number. Use any colour you like 
-  tft.setTextColor(ILI9341_RED);
+  tft.setTextColor(ILI9341_WHITE);
   // 5. Set font size to one 
   tft.setTextSize(1);
   // 6. Print number to the screen
