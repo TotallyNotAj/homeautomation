@@ -42,16 +42,16 @@
 
 
 // DEFINE VARIABLES
-#define potentiometer   32
-#define BTN_1     33
-#define BTN_2     25
-#define BTN_3     26
 #define TFT_DC    17
 #define TFT_CS    5
 #define TFT_RST   16
 #define TFT_CLK   18
 #define TFT_MOSI  23
 #define TFT_MISO  19
+#define BTN_1     25
+#define BTN_2     21
+#define BTN_3     27
+#define potentiometer     33
 
 
 
@@ -401,59 +401,59 @@ void digit4(uint8_t number){
  
  
 void checkPasscode(void){
-    // THE APPROPRIATE ROUTE IN THE BACKEND COMPONENT MUST BE CREATED BEFORE THIS FUNCTION CAN WORK
+    Serial.println("checkPasscode: function called");
+    
     WiFiClient client;
     HTTPClient http;
 
-    if(WiFi.status()== WL_CONNECTED){ 
-      
-      // 1. REPLACE LOCALHOST IN THE STRING BELOW WITH THE IP ADDRESS OF THE COMPUTER THAT YOUR BACKEND IS RUNNING ON
-      http.begin(client, "http://192.168.100.64:8080/api/check/combination"); // Your Domain name with URL path or IP address with path 
- 
-      
-      http.addHeader("Content-Type", "application/x-www-form-urlencoded"); // Specify content-type header      
-      char message[20];  // Store the 4 digit passcode that will be sent to the backend for validation via HTTP POST
-      
-      // 2. Insert all four (4) digits of the passcode into a string with 'passcode=1234' format and then save this modified string in the message[20] variable created above 
-      sprintf(message, "passcode=%d%d%d%d", digit1V, digit2V, digit3V, digit4V);
-                      
-      int httpResponseCode = http.POST(message);  // Send HTTP POST request and then wait for a response
+    if(WiFi.status() == WL_CONNECTED){ 
+        Serial.println("checkPasscode: WiFi connected");
 
-      if (httpResponseCode > 0) {
-        Serial.print("HTTP Response code: ");
-        Serial.println(httpResponseCode);
-        String received = http.getString();
-       
-        // 3. CONVERT 'received' TO JSON.
-        JsonDocument doc;
-        DeserializationError error = deserializeJson(doc, received);
-        if (error) {
-          Serial.print("deserializeJson() failed: ");
-          Serial.println(error.c_str());
-          return;
-        } 
-        
+        char message[20];
+        sprintf(message, "passcode=%d%d%d%d", digit1V, digit2V, digit3V, digit4V);
+        Serial.printf("checkPasscode: sending payload -> %s\n", message);
 
-        // 4. PROCESS MESSAGE. The response from the route that is used to validate the passcode
-        // will be either {"status":"complete","data":"complete"}  or {"status":"failed","data":"failed"} schema.
-        // (1) if the status is complete, set the lockState variable to true, then invoke the showLockState function
-        // (2) otherwise, set the lockState variable to false, then invoke the showLockState function
-        if (doc["status"] == "complete") {
-          isLocked = true;
-          showLockState();
+        http.begin(client, "http://192.168.100.64:8080/api/check/combination");
+        http.addHeader("Content-Type", "application/x-www-form-urlencoded");
+
+        int httpResponseCode = http.POST(message);
+        Serial.printf("checkPasscode: HTTP response code -> %d\n", httpResponseCode);
+
+        if (httpResponseCode > 0) {
+            String received = http.getString();
+            Serial.printf("checkPasscode: raw response -> %s\n", received.c_str());
+
+            JsonDocument doc;
+            DeserializationError error = deserializeJson(doc, received);
+            if (error) {
+                Serial.printf("checkPasscode: JSON parse failed -> %s\n", error.c_str());
+                http.end();
+                return;
+            }
+
+            const char* status = doc["status"];
+            Serial.printf("checkPasscode: status field -> %s\n", status ? status : "NULL");
+
+            if (doc["status"] == "complete") {
+                Serial.println("checkPasscode: MATCH - showing access granted");
+                isLocked = true;
+                showLockState();
+            } else {
+                Serial.println("checkPasscode: NO MATCH - showing access denied");
+                isLocked = false;
+                showLockState();
+            }
         } else {
-          isLocked = false;
-          showLockState();
+            Serial.println("checkPasscode: HTTP request failed - check IP and backend");
         }
-              
-      }     
-        
-      // Free resources
-      http.end();
 
+        http.end();
+        Serial.println("checkPasscode: done");
+
+    } else {
+        Serial.println("checkPasscode: WiFi NOT connected");
     }
-             
- }
+}
 
 
 
