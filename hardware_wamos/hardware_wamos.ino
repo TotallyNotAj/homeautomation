@@ -1,23 +1,19 @@
 
 #include <SoftwareSerial.h>
 // IMPORT ALL REQUIRED LIBRARIES
-
+#include <NewPing.h>
 #include <ArduinoJson.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-
 #include <math.h>
    
 //**********ENTER IP ADDRESS OF SERVER******************//
 
-#define HOST_IP     ""       // REPLACE WITH IP ADDRESS OF SERVER ( IP ADDRESS OF COMPUTER THE BACKEND IS RUNNING ON) 
+#define HOST_IP     "192.168.100.64"       // REPLACE WITH IP ADDRESS OF SERVER ( IP ADDRESS OF COMPUTER THE BACKEND IS RUNNING ON) 
 #define HOST_PORT   "8080"            // REPLACE WITH SERVER PORT (BACKEND FLASK API PORT)
 #define route       "api/update"      // LEAVE UNCHANGED 
 #define idNumber    "620172829"       // REPLACE WITH YOUR ID NUMBER 
 
 // WIFI CREDENTIALS
-#define SSID        ""      // "REPLACE WITH YOUR WIFI's SSID"   
+#define SSID        "MonaConnect"      // "REPLACE WITH YOUR WIFI's SSID"   
 #define password    ""  // "REPLACE WITH YOUR WiFi's PASSWORD" 
 
 #define stay        100
@@ -25,66 +21,65 @@
 //**********PIN DEFINITIONS******************//
 
  
-#define espRX         11
-#define espTX         10
+#define espRX         10
+#define espTX         11
 #define espTimeout_ms 300
-#define trigPin 2    // Trigger
-#define echoPin 3    // Echo
-long duration, radar;
-int cm = 0; 
-int inches = 0;
-int wh = 0;
 
- 
+#define TRIG 4  
+#define ECHO  5 
+#define maxWaterHeight 77.763
+#define max 198 
+#define cap  1000 
+#define tankHeight 94.5 
+#define diameter 61.5 
  
 /* Declare your functions below */
-double calWH(double radar);
-double calWRes(double wh);
-double calPercent(double res);
-double calGal(double percent);  
- 
+void espSend(char command[]);
+void espUpdate(char mssg[]);
+void espInit();
+double getWaterHeight(double distance);
+double getReserve(double height);
  
 
 SoftwareSerial esp(espRX, espTX); 
- 
+NewPing sonar(TRIG, ECHO, max); 
 
 void setup(){
 
   Serial.begin(115200); 
   // Configure GPIO pins here
-  pinMode(espTX, OUTPUT);
-  pinMode(espRX, INPUT_PULLUP);
-  pinMode(trigPin, OUTPUT);
-  pinMode(echoPin, INPUT_PULLUP);
-  espInit();   
+  pinMode(TRIG, OUTPUT);
+  pinMode(ECHO, INPUT);
+
+ 
+
+  espInit();  
+ 
 }
 
 void loop(){ 
    
   // send updates with schema ‘{"id": "student_id", "type": "ultrasonic", "radar": 0, "waterheight": 0, "reserve": 0, "percentage": 0}’
-  digitalWrite(trigPin, LOW);
-  delayMicroseconds(5);
-  digitalWrite(trigPin, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(trigPin, LOW);
-  duration = pulseIn(echoPin, HIGH);
- 
-  cm = (duration / 2) / 29.1;     // Divide by 29.1 or multiply by 0.0343
-  inches = (duration / 2) / 74;   // Divide by 74 or multiply by 0.0135
-  wh = calWH(inches);
-
-  StaticJsonDocument<768> doc;  // Create JSon object
-  char message[260] = { 0 };
+  unsigned int distance = sonar.ping_in();
+  Serial.println(distance);
+  double waterHeight = getWaterHeight(distance);
+  double reserve = getReserve(waterHeight);
+  double percentage = (waterHeight / maxWaterHeight) * 100;
+  JsonDocument doc; // Create JSon object
+      
+  // 2. Create message buffer/array to store serialized JSON object
+  char message[290]  = {0};
 
   doc["id"] = "620172829";
   doc["type"] = "ultrasonic";
-  doc["radar"] = inches;
-  doc["waterheight"] = wh;
-  doc["reserve"] = calWRes(wh);
-  doc["percentage"] = calPercent(wh);
+  doc["radar"] = distance;
+  doc["waterheight"] = waterHeight;
+  doc["reserve"] = reserve;
+  doc["percentage"] = percentage;
 
-  serializeJson(doc ,message);
+  serializeJson(doc, message);
   espUpdate(message);
+
 
   delay(1000);  
 }
@@ -141,21 +136,11 @@ void espInit(){
 }
 
 //***** Design and implement all util functions below ******
-
-double calWH(double radar){
-  return 94.5 - radar;
+double getWaterHeight(double distance){
+  return tankHeight - distance;
 }
 
-double calWRes(double wh){
-  return 3.14159265359 * (61.5 / 2.0) * (61.5 / 2.0)  * wh / 231.0; // 231 cubic inches in a gallon
+double getReserve(double height){
+  return M_PI * pow(diameter / 2.0, 2) * height / 231.0;
 }
-
-double calPercent(double res){
-  return (res / 77.763) * 100;
-}
-
-double calGal(double percent){
-  return (percent * 1000)/100;
-}
- 
 

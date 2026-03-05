@@ -61,8 +61,7 @@ class MQTT:
     def publish(self,topic,payload):
         try :
             info = self.client.publish(topic, payload)
-            info.wait_for_publish()
-            return info.is_published()
+            return info.rc == 0
         
         except Exception as e:
             print(f"MQTT: Publish failed {str(e)}")
@@ -85,7 +84,7 @@ class MQTT:
         try:
             topic   = msg.topic
             payload = msg.payload.decode("utf-8")
-            # print(payload) # UNCOMMENT WHEN DEBUGGING  
+            #print(payload) # UNCOMMENT WHEN DEBUGGING  
             
             update  = loads(payload) # CONVERT FROM JSON STRING TO JSON OBJECT  
             print(update) 

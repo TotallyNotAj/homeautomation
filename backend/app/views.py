@@ -29,21 +29,24 @@ from math import floor
 # 1. CREATE ROUTE FOR '/api/set/combination'
 @app.route('/api/set/combination', methods=['POST'])
 def set_combination():
-    if request.method == 'POST':
+    if request.method == "POST":
         try:
-            form = request.form
-            passcode = escape(form.get("passcode"))
-            passcodeInt = int(passcode)
-            passcode = str(passcode)
-            if len(passcode) == 4 and type(passcodeInt) == int:
-                success = mongo.update_code(passcode)
-                if success is not None:
-                    return jsonify({"status": "complete", "data": "complete"})
-            return jsonify({"status": "failed", "data": "failed"})
+            passcode = request.form.get("passcode")
+
+            #Must be integer and exactly 4 digits
+            if passcode is None or len(passcode) != 4 or not passcode.isdigit():
+                return jsonify({"status": "failed", "data": "failed"})
+
+            result = mongo.setPasscode(passcode)
+
+            if result:
+                return jsonify({"status": "complete", "data": "complete"})
+
         except Exception as e:
             print(f"set_combination error: {str(e)}")
-            return jsonify({"status": "failed", "data": "failed"})
-    
+
+    return jsonify({"status": "failed", "data": "failed"})
+
 # 2. CREATE ROUTE FOR '/api/check/combination'
 @app.route('/api/check/combination', methods=['POST'])
 def check_combination():
@@ -52,7 +55,7 @@ def check_combination():
         passcode = request.form.get('passcode')
         try:
         # Validate passcode against the 'code' collection
-            count = mongo.check_code(passcode)
+            count = mongo.checkPasscode(passcode)
             if count > 0:
                 return jsonify({"status": "complete", "data": "complete"})
             else:
@@ -81,7 +84,7 @@ def update_data():
 
             print(f"MQTT: {jsonDoc}")
 
-            item = mongo.set_combination(jsonDoc)
+            item = mongo.mongo.update(jsonDoc)
             if item:
                 return jsonify({"status": "complete", "data": "complete"})
         except Exception as e:
@@ -115,7 +118,7 @@ def avg(start, end):
         try:
             START = escape(start)
             END = escape(end)
-            data = mongo.avg(START, END)
+            data = mongo.avgReserve(START, END)
 
             if data:
                 return jsonify({"status":"complete", "data":data})

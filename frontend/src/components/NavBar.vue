@@ -13,7 +13,35 @@
                             </RouterLink>
 
                             <!-- Add Links Below --> 
+                             <RouterLink class="route" :to="{ name: 'Control' }">
+                                <VBtn
+                                class="text-subtitle-2"
+                                density="compact"
+                                color="primary"
+                                :variant="route.name == 'Control' ? 'tonal' : 'text'"
+                                >Control</VBtn
+                                >
+                            </RouterLink>
 
+                            <RouterLink class="route" :to="{ name: 'Dashboard' }">
+                                <VBtn
+                                class="text-subtitle-2"
+                                density="compact"
+                                color="primary"
+                                :variant="route.name == 'Dashboard' ? 'tonal' : 'text'"
+                                >Dashboard</VBtn
+                                >
+                            </RouterLink>
+
+                            <RouterLink class="route" :to="{ name: 'Analysis' }">
+                                <VBtn
+                                class="text-subtitle-2"
+                                density="compact"
+                                color="primary"
+                                :variant="route.name == 'Analysis' ? 'tonal' : 'text'"
+                                >Analysis</VBtn
+                                >
+                            </RouterLink>
                         </VCol>
                         <VCol cols="1" align="right">
                             <VBtn size="x-small" :elevation="0"  icon @click="darkmode = !darkmode">                  
@@ -57,7 +85,7 @@
         // SAVE THEME TO LOCALSTORAGE MAKING IT PERSIST BROWSER REFRESH
 
         if(localStorage.getItem("theme") != null){
-            theme.global.name.value = localStorage.getItem("theme");
+        theme.global.name.value = localStorage.getItem("theme");
             darkmode.value = theme.global.current.value.dark;
         }
         else{
@@ -76,4 +104,3 @@
         margin-right: 8px; 
     }
   </style>
-  
